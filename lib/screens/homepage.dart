@@ -1,10 +1,54 @@
-import 'package:assistant/pallete.dart';
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_recognition_result.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 import '../Widgets/featureBox.dart';
+import 'package:assistant/pallete.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final speechtotext = SpeechToText();
+  String lastWords = "";
+  @override
+  void initState() {
+    super.initState();
+    initSpeechToText();
+  }
+
+  Future<void> initSpeechToText() async {
+    await speechtotext.initialize();
+    setState(() {});
+  }
+
+  Future<void> startListening() async {
+    await speechtotext.listen(onResult: onSpeechResult);
+    setState(() {});
+  }
+
+  Future<void> stopListening() async {
+    await speechtotext.stop();
+    setState(() {
+      print(lastWords);
+    });
+  }
+
+  void onSpeechResult(SpeechRecognitionResult result) {
+    setState(() {
+      lastWords = result.recognizedWords;
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    speechtotext.stop();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +91,7 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Container(
+              margin: const EdgeInsets.only(left: 15, right: 15),
               decoration: BoxDecoration(
                 border: Border.all(color: Pallete.borderColor),
                 borderRadius:
@@ -56,9 +101,10 @@ class HomePage extends StatelessWidget {
               child: const Text(
                 "How may i assist you ?",
                 style: TextStyle(
-                    color: Pallete.mainFontColor,
-                    fontSize: 25,
-                    fontFamily: "Cera Pro"),
+                  color: Pallete.mainFontColor,
+                  fontSize: 20,
+                  fontFamily: "Cera Pro",
+                ),
               ),
             ),
             Container(
@@ -93,13 +139,20 @@ class HomePage extends StatelessWidget {
                   'Get the best of both worlds with a voice assistant powered by Dall-E and ChatGPT',
               name: 'Smart Voice Assistant',
             ),
-            const FloatingActionButton(
-              onPressed: null,
-              child: Icon(Icons.mic),
-            ),
-            const SizedBox(height: 20),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          if (await speechtotext.hasPermission && speechtotext.isNotListening) {
+            await startListening();
+          } else if (speechtotext.isListening) {
+            await stopListening();
+          } else {
+            initSpeechToText();
+          }
+        },
+        child: const Icon(Icons.mic),
       ),
     );
   }
