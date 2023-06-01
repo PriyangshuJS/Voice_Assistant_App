@@ -5,7 +5,7 @@ import 'package:assistant/secret.dart';
 
 class OpenAiServices {
   final List<Map<String, String>> messages = [];
-  // ignore: non_constant_identifier_names
+
   Future<String> IsArtPromptAPI(String prompt) async {
     try {
       final res = await http.post(
@@ -25,10 +25,10 @@ class OpenAiServices {
           ]
         }),
       );
-      //print(res.body);
+
       if (res.statusCode == 200) {
         String content =
-            jsonDecode(res.body)["choices"][0]["messages"]["content"];
+            jsonDecode(res.body)["choices"][0]["message"]["content"];
         content = content.trim();
 
         switch (content) {
@@ -36,14 +36,14 @@ class OpenAiServices {
           case "yes":
           case "Yes.":
           case "yes.":
-            final res = await DallE(prompt);
-            return res;
+            final dalleRes = await DallE(prompt);
+            return dalleRes;
           default:
-            final res = await ChatGPT(prompt);
-            return res;
+            final chatGptRes = await ChatGPT(prompt);
+            return chatGptRes;
         }
       }
-      return "An Internal ERROR occured !";
+      return "An Internal ERROR occurred!";
     } catch (e) {
       return e.toString();
     }
@@ -52,7 +52,7 @@ class OpenAiServices {
   Future<String> ChatGPT(String prompt) async {
     messages.add({
       "role": "user",
-      "context": prompt,
+      "content": prompt,
     });
     try {
       final res = await http.post(
@@ -69,22 +69,21 @@ class OpenAiServices {
 
       if (res.statusCode == 200) {
         String content =
-            jsonDecode(res.body)["choices"][0]["messages"]["content"];
+            jsonDecode(res.body)["choices"][0]["message"]["content"];
         content = content.trim();
         messages.add({
-          "role": "assistence",
-          "messages": content,
+          "role": "assistant",
+          "content": content,
         });
 
         return content;
       }
-      return "An Internal ERROR occured !";
+      return "An Internal ERROR occurred!";
     } catch (e) {
       return e.toString();
     }
   }
 
-  // ignore: non_constant_identifier_names
   Future<String> DallE(String prompt) async {
     return "D";
   }

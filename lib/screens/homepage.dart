@@ -149,8 +149,9 @@ class _HomePageState extends State<HomePage> {
           if (await speechtotext.hasPermission && speechtotext.isNotListening) {
             await startListening();
           } else if (speechtotext.isListening) {
-            final speech = await openAIservices.IsArtPromptAPI(lastWords);
-            Text(speech);
+            await openAIservices.IsArtPromptAPI(lastWords)
+                .then((value) => print(value));
+
             await stopListening();
           } else {
             initSpeechToText();
