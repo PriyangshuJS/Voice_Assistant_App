@@ -20,7 +20,7 @@ class OpenAiServices {
             {
               "role": "user",
               "content":
-                  "Does this message want to generate an AI picture, image, art or anything similar? $prompt . Simply answer with a yes or no."
+                  "Does the message: '$prompt' indicate a request to generate a picture, image, artwork, or any visual content? Please answer with 'yes' or 'no'."
             }
           ]
         }),
@@ -30,7 +30,7 @@ class OpenAiServices {
         String content =
             jsonDecode(res.body)["choices"][0]["message"]["content"];
         content = content.trim();
-
+        print("ANSWER - $content");
         switch (content) {
           case "Yes":
           case "yes":
@@ -50,6 +50,7 @@ class OpenAiServices {
   }
 
   Future<String> ChatGPT(String prompt) async {
+    print("CHAT_GPT");
     messages.add({
       "role": "user",
       "content": prompt,
@@ -85,6 +86,37 @@ class OpenAiServices {
   }
 
   Future<String> DallE(String prompt) async {
-    return "D";
+    print("DALL-E");
+    messages.add({
+      "role": "user",
+      "content": prompt,
+    });
+    try {
+      final res = await http.post(
+        Uri.parse("https://api.openai.com/v1/images/generations"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $OpenApiSecretKey"
+        },
+        body: jsonEncode({
+          "prompt": prompt,
+          "n": 1,
+        }),
+      );
+
+      if (res.statusCode == 200) {
+        String imageurl = jsonDecode(res.body)["data"][0]["url"];
+        imageurl = imageurl.trim();
+        messages.add({
+          "role": "assistant",
+          "content": imageurl,
+        });
+
+        return imageurl;
+      }
+      return "An Internal ERROR occurred!";
+    } catch (e) {
+      return e.toString();
+    }
   }
 }
