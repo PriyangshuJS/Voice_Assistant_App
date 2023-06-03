@@ -177,6 +177,7 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           if (await speechtotext.hasPermission && speechtotext.isNotListening) {
+            await texttospeech.stop();
             await startListening();
           } else if (speechtotext.isListening) {
             final speech = await openAIservices.IsArtPromptAPI(lastWords);
@@ -190,7 +191,6 @@ class _HomePageState extends State<HomePage> {
               setState(() {});
               systemspeak(speech);
             }
-
             await stopListening();
           } else {
             initSpeechToText();
