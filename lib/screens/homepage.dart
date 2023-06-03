@@ -1,3 +1,4 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:assistant/openai_services.dart';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
@@ -20,6 +21,8 @@ class _HomePageState extends State<HomePage> {
   String lastWords = "";
   String? generatedimage;
   String? generatedspeech;
+  int start = 2;
+  int wait = 1;
   final OpenAiServices openAIservices = OpenAiServices();
 
   @override
@@ -129,44 +132,56 @@ class _HomePageState extends State<HomePage> {
                   child: Image.network(generatedimage!),
                 ),
               ),
-            Visibility(
-              visible: generatedspeech == null && generatedimage == null,
-              child: Container(
-                alignment: Alignment.center,
-                margin: const EdgeInsets.only(top: 20, bottom: 10),
-                child: const Text(
-                  "Here are some Features - ",
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontFamily: "Cera Pro",
-                    color: Pallete.mainFontColor,
-                    fontWeight: FontWeight.bold,
+            SlideInLeft(
+              delay: Duration(seconds: start),
+              child: Visibility(
+                visible: generatedspeech == null && generatedimage == null,
+                child: Container(
+                  alignment: Alignment.center,
+                  margin: const EdgeInsets.only(top: 20, bottom: 10),
+                  child: const Text(
+                    "Here are some Features - ",
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontFamily: "Cera Pro",
+                      color: Pallete.mainFontColor,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
             ),
             Visibility(
               visible: generatedspeech == null && generatedimage == null,
-              child: const Column(
+              child: Column(
                 children: [
-                  FeatureBox(
-                    color: Pallete.firstSuggestionBoxColor,
-                    description:
-                        ' A smarter way to stay organized and informed with ChatGPT',
-                    name: 'Chat GPT',
+                  SlideInLeft(
+                    delay: Duration(seconds: start + wait),
+                    child: FeatureBox(
+                      color: Pallete.firstSuggestionBoxColor,
+                      description:
+                          ' A smarter way to stay organized and informed with ChatGPT',
+                      name: 'Chat GPT',
+                    ),
                   ),
-                  FeatureBox(
-                    color: Pallete.secondSuggestionBoxColor,
-                    description:
-                        'Get inspired and stay creative with your personal assistant powered by Dall-E',
-                    name: 'Dall-E',
+                  SlideInLeft(
+                    delay: Duration(seconds: start + 2 * wait),
+                    child: FeatureBox(
+                      color: Pallete.secondSuggestionBoxColor,
+                      description:
+                          'Get inspired and stay creative with your personal assistant powered by Dall-E',
+                      name: 'Dall-E',
+                    ),
                   ),
-                  FeatureBox(
-                    color: Pallete.thirdSuggestionBoxColor,
-                    description:
-                        'Get the best of both worlds with a voice assistant powered by Dall-E and ChatGPT',
-                    name: 'Smart Voice Assistant',
+                  SlideInLeft(
+                    delay: Duration(seconds: start + 3 * wait),
+                    child: FeatureBox(
+                      color: Pallete.thirdSuggestionBoxColor,
+                      description:
+                          'Get the best of both worlds with a voice assistant powered by Dall-E and ChatGPT',
+                      name: 'Smart Voice Assistant',
+                    ),
                   ),
                 ],
               ),
@@ -174,29 +189,33 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          if (await speechtotext.hasPermission && speechtotext.isNotListening) {
-            await texttospeech.stop();
-            await startListening();
-          } else if (speechtotext.isListening) {
-            final speech = await openAIservices.IsArtPromptAPI(lastWords);
-            if (speech.contains("https")) {
-              generatedimage = speech;
-              generatedspeech = null;
-              setState(() {});
+      floatingActionButton: SlideInRight(
+        delay: Duration(seconds: start + 4 * wait),
+        child: FloatingActionButton(
+          onPressed: () async {
+            if (await speechtotext.hasPermission &&
+                speechtotext.isNotListening) {
+              await texttospeech.stop();
+              await startListening();
+            } else if (speechtotext.isListening) {
+              final speech = await openAIservices.IsArtPromptAPI(lastWords);
+              if (speech.contains("https")) {
+                generatedimage = speech;
+                generatedspeech = null;
+                setState(() {});
+              } else {
+                generatedimage = null;
+                generatedspeech = speech;
+                setState(() {});
+                systemspeak(speech);
+              }
+              await stopListening();
             } else {
-              generatedimage = null;
-              generatedspeech = speech;
-              setState(() {});
-              systemspeak(speech);
+              initSpeechToText();
             }
-            await stopListening();
-          } else {
-            initSpeechToText();
-          }
-        },
-        child: Icon(speechtotext.isListening ? Icons.stop : Icons.mic),
+          },
+          child: Icon(speechtotext.isListening ? Icons.stop : Icons.mic),
+        ),
       ),
     );
   }
